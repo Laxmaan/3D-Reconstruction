@@ -28,6 +28,7 @@ mean_xyz = mean(inliers);
 new_pts_xyz = inliers - mean_xyz;
 
 plot3(inliers(:,1), inliers(:,2), inliers(:,3),'r.','LineWidth',0.5);
+set(gca, 'CameraUpVector', [0 -1 0.1]);
 hold on
 plot3(pts_xyz(outlier1',1), pts_xyz(outlier1',2), pts_xyz(outlier1',3),'b*','LineWidth',0.5);
 hold on
