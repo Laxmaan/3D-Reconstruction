@@ -36,8 +36,7 @@ rotate3d on
 axis equal
 
 
-mkdir outs %outputdir
-saveas(gcf,"outs/pointcloud.png");
+
 %%
 %   OBTAIN TRANSFORM MATRIX TO CONVERT FROM LOCAL <---> SCENE SYSTEMS
 %%
@@ -65,9 +64,8 @@ local2scene = pinv(scene2local);
 %% plot dominant plane
 
 verts_plane = [ -4 -4 0; -4 4 0; 4 4 0; 4 -4 0];
-verts_plane = hom2cart(cart2hom(verts_plane) * local2scene');
 faces_plane = [1 2 3 4];
-patch('Vertices',verts_plane,'Faces',faces_plane,'FaceVertexCData',[0; 6; 4; 3],'FaceColor','interp')
+patch('Vertices',verts_plane,'Faces',faces_plane,'FaceVertexCData',cdata,'FaceColor','flat')
 
 
 
@@ -114,8 +112,8 @@ vectarrow(hom2cart(cart2hom([0 0 0]) * local2scene'),hom2cart(cart2hom([3 0 0]) 
 hold off
  %break here
  
-
-saveas(gcf,"outs/pointcloud_objects.png");
+mkdir outs %outputdir
+saveas(gcf,"outs/pointcloud.png");
  
 %%
 %   READ CAMERA PARAMS DEFINE R_T and K
