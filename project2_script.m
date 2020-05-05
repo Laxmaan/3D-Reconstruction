@@ -35,11 +35,12 @@ drawnow
 rotate3d on
 axis equal
 
-params = fit_plane_for_given_pts(inliers');
+
 
 %%
 %   OBTAIN TRANSFORM MATRIX TO CONVERT FROM LOCAL <---> SCENE SYSTEMS
 %%
+params = fit_plane_for_given_pts(inliers');
 a = params(1);
 b = params(2);
 c = params(3);
@@ -79,7 +80,7 @@ faces1 = readmatrix('faces.txt', 'delimiter', ' '); % read dolphin faces
 verts1 = (local2scene * local_transform * verts1')';
 verts1 = hom2cart(verts1);
 cdata1 = randi([1 size(faces1,1)],size(faces1,1),1); % get colors
-patch('Vertices',verts1,'Faces',faces1,'FaceVertexCData',cdata1,'FaceColor','flat');
+
 
 
 %%% align the cube and draw
@@ -87,8 +88,11 @@ patch('Vertices',verts1,'Faces',faces1,'FaceVertexCData',cdata1,'FaceColor','fla
  verts2 = (local2scene * get_transform_mat(0,0,95,1,2,0,"deg") * verts2')';
  verts2 = hom2cart(verts2);
  cdata2 = randi([1 size(faces1,1)],size(faces2,1),1);
- patch('Vertices',verts2,'Faces',faces2,'FaceVertexCData',cdata2,'FaceColor','flat');
-
+ 
+ 
+%% add the cube to scene
+ [verts,faces,cdata ] = combineScene(verts1,faces1,verts2,faces2);
+patch('Vertices',verts,'Faces',faces,'FaceVertexCData',cdata,'FaceColor','flat')
 
 hold on
 vectarrow(hom2cart(cart2hom([0 0 0]) * local2scene'),hom2cart(cart2hom([0 0 3]) * local2scene'));
@@ -98,6 +102,9 @@ hold on
 vectarrow(hom2cart(cart2hom([0 0 0]) * local2scene'),hom2cart(cart2hom([3 0 0]) * local2scene'));
 hold off
  %break here
+ 
+mkdir outs %outputdir
+saveas(gcf,"outs/pointcloud.png");
  
 %%
 %   READ CAMERA PARAMS DEFINE R_T and K
@@ -143,29 +150,20 @@ list_of_files = dir('imgs\*.jpg');
 img = [];
 
 
-mkdir outs %outputdir
+
 
 % Mark the set_2d points on "img"
 for i=1:27
     
     
     %cube 1
-    set_2d1 =K * R_T_matrix(:,:,i)* cart2hom(verts1)';
+    set_2d1 =K * R_T_matrix(:,:,i)* cart2hom(verts)';
     pimage2d1 = hom2cart(set_2d1');
-    depths1 = get_Z_buffer(cart2hom(verts1)',set_2d1,K,R_T_matrix(:,:,i));
-    
-    %cube 2
-    set_2d2 =K * R_T_matrix(:,:,i)* cart2hom(verts2)';
-    pimage2d2 = hom2cart(set_2d2');
-    depths2 = get_Z_buffer(cart2hom(verts2)',set_2d2,K,R_T_matrix(:,:,i));
-    
-    %combine depths
-    maxval = max([depths1 depths2]);
-    depths1 = abs(depths1 - maxval);
+    depths1 = get_Z_buffer(cart2hom(verts)',set_2d1,K,R_T_matrix(:,:,i));
+    maxval = max(depths1);
+    depths1 = abs(depths1 - maxval);  
     depth_2d1 = [pimage2d1 depths1'];
-    depths2 = abs(depths2 - maxval);
-    depth_2d2 = [pimage2d2 depths2'];
-    
+
     
     
     
@@ -175,10 +173,9 @@ for i=1:27
     
    
     
-    patch('Vertices',depth_2d1,'Faces',faces1,...
-      'FaceVertexCData',cdata1,'FaceColor','flat','EdgeAlpha',0);
-   patch('Vertices',depth_2d2,'Faces',faces2,...
-       'FaceVertexCData',cdata2,'FaceColor','flat','EdgeAlpha',0);
+    patch('Vertices',depth_2d1,'Faces',faces,...
+      'FaceVertexCData',cdata,'FaceColor','flat','EdgeAlpha',0);
+
    colormap('jet');
    
    name = sprintf("outs/op_%d.png",i);
