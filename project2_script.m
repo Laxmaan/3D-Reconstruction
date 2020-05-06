@@ -55,11 +55,13 @@ k = [0; 0; 1];
 
 theta = acos(v'*k);  %angle between nomal to global plane (Z axis) and 
                      %plane normal
-
-Rot = axang2rotm( [cross(v,k)' theta]); % rotate by theta by axis perpendicular
+a = cross(v,k);
+a = a/norm(a);
+A = [0 -a(3) a(2); a(3) 0 -a(1); -a(2) a(1) 0];
+%Rot = axang2rotm( [cross(v,k)' theta]); % rotate by theta by axis perpendicular
                                         % to both normals
 
-
+Rot = eye(3) + sin(theta)* A + (1 - cos(theta))* (A*A);
 scene2local = trvec2tform(-mean_xyz*Rot') * rotm2tform(Rot);
 local2scene = pinv(scene2local);
 
